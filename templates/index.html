@@ -3,98 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Health Companion</title>
+    <title>AI Health Companion | Andriel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+        }
+        .main-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header-section {
+            background: #4834d4;
+            color: white;
+            padding: 2.5rem 1rem;
+            text-align: center;
+        }
+        .btn-analyze {
+            background: #4834d4;
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-analyze:hover {
+            background: #686de0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 52, 212, 0.3);
+        }
+        .result-container {
+            border-left: 5px solid #4834d4;
+            background: #f8f9ff;
+            border-radius: 0 12px 12px 0;
+            display: none;
+        }
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4834d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h2>AI Symptom Analyzer</h2>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card main-card animate__animated animate__fadeInUp">
+                <div class="header-section">
+                    <h2 class="fw-bold mb-0">🩺 AI Health Companion</h2>
+                    <p class="small opacity-75 mb-0">Smart Symptom Analysis Powered by Llama 3.1</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Describe your symptoms:</label>
+                        <textarea id="symptoms" class="form-control" rows="4" placeholder="e.g. I have a sharp headache and feel slightly nauseous..."></textarea>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="symptoms" class="form-label"><strong>What are your symptoms?</strong></label>
-                            <textarea class="form-control" id="symptoms" rows="4" placeholder="e.g., I have a headache, mild fever, and body ache for 2 days..."></textarea>
-                        </div>
-                        <button class="btn btn-primary w-100" id="analyzeBtn">Analyze Symptoms</button>
+                    
+                    <button id="analyzeBtn" class="btn btn-primary w-100 btn-analyze mb-4">Analyze Symptoms</button>
+                    
+                    <div id="loading" class="text-center mb-4">
+                        <div class="loader mx-auto"></div>
+                        <p class="text-muted small mt-2">AI is analyzing your symptoms...</p>
+                    </div>
 
-                        <hr class="my-4">
-
-                        <h5 class="mb-3">Analysis Result:</h5>
-                        <div id="resultBox" class="alert alert-secondary">
-                            Awaiting input...
+                    <div id="resultBox" class="result-container p-4 animate__animated animate__fadeIn">
                         </div>
 
-                        <div class="alert alert-warning mt-4 text-center" role="alert">
-                            <strong>⚠️ IMPORTANT:</strong> This system provides AI-generated suggestions and is not a substitute for professional medical advice.
-                        </div>
+                    <div class="mt-4 p-3 bg-light rounded border">
+                        <small class="text-muted d-block text-center" style="font-size: 0.75rem;">
+                            ⚠️ <strong>Disclaimer:</strong> This system provides AI-generated suggestions and is not a substitute for professional medical advice.
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('analyzeBtn').addEventListener('click', async function() {
-            const symptomsText = document.getElementById('symptoms').value;
-            const resultBox = document.getElementById('resultBox');
+<script>
+    document.getElementById('analyzeBtn').addEventListener('click', async function() {
+        const symptomsText = document.getElementById('symptoms').value;
+        const resultBox = document.getElementById('resultBox');
+        const loader = document.getElementById('loading');
 
-            if (!symptomsText.trim()) {
-                alert("Please enter some symptoms first!");
+        if (!symptomsText.trim()) return alert("Please enter your symptoms.");
+
+        resultBox.style.display = 'none';
+        loader.style.display = 'block';
+
+        try {
+            const response = await fetch('/analyze-symptoms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms: symptomsText })
+            });
+
+            const data = await response.json();
+            loader.style.display = 'none';
+
+            if (data.error) {
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = `<span class='text-danger'>${data.error}</span>`;
                 return;
             }
 
-            resultBox.innerHTML = "<em>Analyzing symptoms... Please wait.</em>";
+            let badge = data.confidence_level === "High" ? "bg-danger" : (data.confidence_level === "Medium" ? "bg-warning text-dark" : "bg-success");
 
-            try {
-                const response = await fetch('/analyze-symptoms', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symptoms: symptomsText })
-                });
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = `
+                <h4 class="fw-bold" style="color: #4834d4;">${data.possible_condition}</h4>
+                <span class="badge ${badge} mb-3">Confidence: ${data.confidence_level}</span>
+                
+                <p class="fw-bold mb-1 text-dark">Suggested Actions:</p>
+                <ul class="ps-3 small">${data.recommended_actions.map(a => `<li>${a}</li>`).join('')}</ul>
+                
+                <p class="fw-bold mb-1 text-danger">Seek Help If:</p>
+                <ul class="ps-3 small">${data.seek_medical_help_if.map(f => `<li>${f}</li>`).join('')}</ul>
+            `;
+        } catch (error) {
+            loader.style.display = 'none';
+            alert("Connection error. Is the server live?");
+        }
+    });
+</script>
 
-                const data = await response.json();
-
-                if (data.error) {
-                    resultBox.innerHTML = `<span class='text-danger'>${data.error}</span>`;
-                    return;
-                }
-
-                const actionsHtml = data.recommended_actions.map(action => `<li>${action}</li>`).join('');
-                const medicalHelpHtml = data.seek_medical_help_if.map(flag => `<li>${flag}</li>`).join('');
-
-                // --- NEW: Dynamic Badge Color Logic ---
-                let badgeClass = "bg-info"; // Default blue
-                if (data.confidence_level === "High") {
-                    badgeClass = "bg-danger"; // Red
-                } else if (data.confidence_level === "Medium") {
-                    badgeClass = "bg-warning text-dark"; // Yellow
-                } else if (data.confidence_level === "Low") {
-                    badgeClass = "bg-success"; // Green
-                }
-
-                // Update the UI
-                resultBox.innerHTML = `
-                    <h4 class="text-primary">${data.possible_condition}</h4>
-                    <p><strong>Confidence Level:</strong> <span class="badge ${badgeClass}">${data.confidence_level}</span></p>
-                    
-                    <strong>Recommended Actions:</strong>
-                    <ul>${actionsHtml}</ul>
-                    
-                    <strong class="text-danger">Seek Medical Help If:</strong>
-                    <ul>${medicalHelpHtml}</ul>
-                    
-                    <hr>
-                    <small class="text-muted"><em>${data.disclaimer}</em></small>
-                `;
-            } catch (error) {
-                resultBox.innerHTML = "<span class='text-danger'>Error connecting to the server. Make sure Flask is running!</span>";
-                console.error("Error:", error);
-            }
-        });
-    </script>
 </body>
 </html>
