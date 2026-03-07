@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andriel | Health Dashboard</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,7 +25,6 @@
             height: 100vh;
         }
 
-        /* Sidebar Styling */
         .sidebar {
             width: 80px;
             background-color: var(--sidebar-color);
@@ -36,17 +36,15 @@
         }
 
         .sidebar-icon {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #bdc3c7;
             margin-bottom: 30px;
             cursor: pointer;
             transition: 0.3s;
         }
 
-        .sidebar-icon.active { color: #2ecc71; }
-        .sidebar-icon:hover { color: var(--accent-color); }
+        .sidebar-icon.active { color: var(--accent-color); }
 
-        /* Main Content Styling */
         .main-wrapper {
             flex: 1;
             padding: 30px;
@@ -60,7 +58,6 @@
             margin-bottom: 30px;
         }
 
-        /* The Grid Layout */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -75,14 +72,13 @@
             border: none;
         }
 
-        .symptom-analyzer-box {
-            grid-column: 1 / 2;
-        }
+        .symptom-analyzer-box { grid-column: 1 / 2; }
 
         textarea.form-control {
             background-color: #f8fafb;
             border: 1px solid #eee;
             border-radius: 12px;
+            resize: none;
         }
 
         .btn-primary {
@@ -90,59 +86,63 @@
             border: none;
             border-radius: 50px;
             padding: 10px 25px;
+            font-weight: 600;
         }
 
         .result-container {
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 15px;
             background: #f0fff4;
             display: none;
+            border-left: 5px solid #2ecc71;
         }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
-        <div class="sidebar-icon active"><i class="fas fa-home"></i></div>
+        <div class="sidebar-icon active"><i class="fas fa-columns"></i></div>
         <div class="sidebar-icon"><i class="fas fa-heartbeat"></i></div>
-        <div class="sidebar-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div class="sidebar-icon"><i class="fas fa-user-md"></i></div>
         <div class="sidebar-icon"><i class="fas fa-cog"></i></div>
     </nav>
 
     <div class="main-wrapper">
         <header class="dashboard-header">
             <div>
-                <h2 class="fw-bold">Hi, Andriel!</h2>
-                <p class="text-muted">Let's look at your health analysis overview.</p>
+                <h2 class="fw-bold mb-0">Hi, Andriel!</h2>
+                <p class="text-muted mb-0" id="liveDate" style="font-size: 0.9rem;"></p>
+                <p class="fw-bold text-primary mb-0" id="liveClock"></p>
             </div>
             <div class="d-flex align-items-center">
-                <input type="text" class="form-control rounded-pill border-0 px-4 py-2" placeholder="Search metrics..." style="width: 250px;">
-                <img src="https://ui-avatars.com/api/?name=Andriel+Mariya&background=random" class="rounded-circle ms-3" width="45" alt="Profile">
+                <input type="text" class="form-control rounded-pill border-0 px-4" placeholder="Search health metrics..." style="width: 250px; height: 45px; background: white;">
+                <img src="https://ui-avatars.com/api/?name=Andriel+Mariya&background=4834d4&color=fff" class="rounded-circle ms-3" width="45" alt="Profile">
             </div>
         </header>
 
         <div class="dashboard-grid">
             <div class="health-card symptom-analyzer-box">
-                <h5 class="fw-bold mb-4">AI Symptom Analyzer</h5>
-                <textarea id="symptoms" class="form-control mb-3" rows="5" placeholder="Enter your symptoms here..."></textarea>
-                <button id="analyzeBtn" class="btn btn-primary">Start Analysis -></button>
-                <div id="resultBox" class="result-container mt-4"></div>
+                <h5 class="fw-bold mb-4">🩺 AI Symptom Analyzer</h5>
+                <textarea id="symptoms" class="form-control mb-3" rows="6" placeholder="Describe how you are feeling..."></textarea>
+                <button id="analyzeBtn" class="btn btn-primary">Start AI Analysis -></button>
+                
+                <div id="resultBox" class="result-container animate__animated animate__fadeIn"></div>
             </div>
 
             <div class="d-flex flex-column gap-3">
                 <div class="health-card" style="background-color: #e3f2fd;">
-                    <h6 class="text-primary fw-bold">Hydration Status</h6>
-                    <h3 class="fw-bold">2.15L <small class="fs-6 text-muted">/ Day</small></h3>
-                    <div class="badge bg-white text-primary rounded-pill mt-2 p-2 px-3">Well Done! 👍</div>
+                    <h6 class="text-primary fw-bold">Hydration</h6>
+                    <h3 class="fw-bold mb-1">2.15L <small class="fs-6 text-muted">/ Day</small></h3>
+                    <div class="badge bg-white text-primary rounded-pill p-2 px-3">Goal: 3.0L</div>
                 </div>
 
                 <div class="health-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="text-muted fw-bold mb-0">Heart Rate</h6>
-                        <span class="badge bg-info-subtle text-info rounded-pill">Normal</span>
+                        <span class="badge bg-success-subtle text-success rounded-pill">Stable</span>
                     </div>
-                    <div style="height: 120px;">
+                    <div style="height: 110px;">
                         <canvas id="heartRateChart"></canvas>
                     </div>
                     <div class="mt-2 text-center">
@@ -154,17 +154,27 @@
     </div>
 
     <script>
-        // 1. Initialize the Chart
+        // 1. Live Clock & Date Logic
+        function updateClock() {
+            const now = new Date();
+            const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            document.getElementById('liveDate').innerText = now.toLocaleDateString('en-US', dateOpts);
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', timeOpts);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Heart Rate Chart Initialization
         const ctx = document.getElementById('heartRateChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['1pm', '2pm', '3pm', '4pm', '5pm', '6pm'],
                 datasets: [{
-                    label: 'BPM',
-                    data: [65, 78, 72, 85, 70, 72],
-                    borderColor: '#ff9f43',
-                    backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                    data: [68, 75, 71, 82, 69, 72],
+                    borderColor: '#4834d4',
+                    backgroundColor: 'rgba(72, 52, 212, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4,
@@ -179,7 +189,7 @@
             }
         });
 
-        // 2. Symptom Analyzer Logic
+        // 3. AI Analysis Logic
         document.getElementById('analyzeBtn').addEventListener('click', async function() {
             const symptomsText = document.getElementById('symptoms').value;
             const resultBox = document.getElementById('resultBox');
@@ -187,7 +197,7 @@
             if (!symptomsText.trim()) return alert("Please enter symptoms.");
 
             resultBox.style.display = 'block';
-            resultBox.innerHTML = "<em>Analyzing...</em>";
+            resultBox.innerHTML = "<div class='text-center py-3'><div class='spinner-border spinner-border-sm text-success'></div><span class='ms-2'>AI is processing...</span></div>";
 
             try {
                 const response = await fetch('/analyze-symptoms', {
@@ -195,22 +205,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ symptoms: symptomsText })
                 });
-
                 const data = await response.json();
                 
-                if (data.error) {
-                    resultBox.innerHTML = `<span class='text-danger'>${data.error}</span>`;
-                    return;
-                }
+                let badge = data.confidence_level === "High" ? "bg-danger" : "bg-warning text-dark";
 
                 resultBox.innerHTML = `
-                    <h5 class="fw-bold text-success">Analysis: ${data.possible_condition}</h5>
-                    <p class="small text-muted mb-0">Confidence: <strong>${data.confidence_level}</strong></p>
-                    <hr>
-                    <p class="mb-1 small"><strong>Recommendations:</strong> ${data.recommended_actions[0]}</p>
+                    <h5 class="fw-bold text-success">Possible Condition: ${data.possible_condition}</h5>
+                    <span class="badge ${badge} mb-3">AI Confidence: ${data.confidence_level}</span>
+                    <p class="small"><strong>Recommended Actions:</strong> ${data.recommended_actions.join(', ')}</p>
+                    <p class="small text-danger mb-0"><strong>Emergency Signs:</strong> ${data.seek_medical_help_if.join(' or ')}</p>
                 `;
             } catch (error) {
-                resultBox.innerHTML = "Error connecting to AI server.";
+                resultBox.innerHTML = "<p class='text-danger'>Server Connection Error.</p>";
             }
         });
     </script>
