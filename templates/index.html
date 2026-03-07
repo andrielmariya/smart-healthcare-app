@@ -149,6 +149,19 @@
                         <h4 class="fw-bold mb-0">72 <small class="fs-6 text-muted">BPM</small></h4>
                     </div>
                 </div>
+                <div class="health-card">
+                    <h6 class="text-muted fw-bold mb-3">Daily Steps</h6>
+                    <div style="height: 150px; position: relative;">
+                        <canvas id="stepsChart"></canvas>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <h4 class="fw-bold mb-0">7,432</h4>
+                            <small class="text-muted">Steps</small>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <span class="badge bg-success-subtle text-success rounded-pill">74% of Goal</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -219,6 +232,25 @@
                 resultBox.innerHTML = "<p class='text-danger'>Server Connection Error.</p>";
             }
         });
+        // 4. Step Counter (Donut Chart)
+const stepCtx = document.getElementById('stepsChart').getContext('2d');
+new Chart(stepCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'Remaining'],
+        datasets: [{
+            data: [7432, 2568],
+            backgroundColor: ['#2ecc71', '#f0f0f0'], // Green for progress, light gray for remaining
+            borderWidth: 0,
+            cutout: '80%' // This creates the "Ring" look
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    }
+});
     </script>
 </body>
 </html>
