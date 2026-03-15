@@ -22,10 +22,10 @@ def analyze_symptoms():
     data = request.json
     symptoms = data.get("symptoms", "")
     
+    # Prompt format used during your Llama-3 fine-tuning
     prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{symptoms}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
     
     try:
-        # Changed 'stop_sequences' to 'stop' to fix the 500 error
         response = client.text_generation(prompt, max_new_tokens=256, stop=["<|eot_id|>"])
         
         return jsonify({
@@ -35,10 +35,11 @@ def analyze_symptoms():
             "seek_medical_help_if": ["Symptoms worsen", "Emergency signs appear"]
         })
     except Exception as e:
-        print(f"Error: {e}") # This will show up in Render logs if it fails
+        # This will show up in Render logs to tell us EXACTLY why it failed
+        print(f"DEBUG ERROR: {str(e)}") 
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # This specific port logic is what Render's scanner is looking for
+    # Ensure this is the ONLY code at the bottom of your file
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
