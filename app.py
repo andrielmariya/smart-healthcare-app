@@ -1,3 +1,17 @@
+import os  # <--- THIS IS THE MISSING PIECE!
+from flask import Flask, jsonify, request, render_template
+from huggingface_hub import InferenceClient
+from dotenv import load_dotenv
+
+load_dotenv() # This helps load variables if you're testing locally
+
+app = Flask(__name__)
+
+# Now 'os' will be recognized here:
+client = InferenceClient(
+    model="andrielmariya/medical-llama3-model", 
+    token=os.getenv("HF_TOKEN")
+)
 from huggingface_hub import InferenceClient
 
 # Use your actual HF token from your settings
