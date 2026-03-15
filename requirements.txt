@@ -1,5 +1,4 @@
 flask
-python-dotenv
-groq
-gunicorn
 huggingface_hub
+requests
+python-dotenv
