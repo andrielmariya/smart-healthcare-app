@@ -1,63 +1,27 @@
 import os
-import json
 from flask import Flask, jsonify, request, render_template
-from dotenv import load_dotenv
-from groq import Groq
-
-# Load the secret key
-load_dotenv()
+from huggingface_hub import InferenceClient
 
 app = Flask(__name__)
 
-# Initialize the Groq Client
-my_api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=my_api_key)
-
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('index.html')
+# Initialize the client with your custom model path
+# Replace 'Andriel/medical-llama3-model' with your actual path
+client = InferenceClient(
+    model="Andriel/medical-llama3-model",
+    token=os.getenv("HF_TOKEN")
+)
 
 @app.route('/analyze-symptoms', methods=['POST'])
 def analyze_symptoms():
     data = request.json
-    user_symptoms = data.get("symptoms", "")
+    symptoms = data.get("symptoms", "")
     
-    prompt = f"""
-    You are a medical triage assistant. A user has reported the following symptoms: "{user_symptoms}".
-    Analyze the symptoms and provide a response strictly in JSON format with exactly these keys:
-    - "possible_condition": (string) The most likely general condition.
-    - "confidence_level": (string) "Low", "Medium", or "High".
-    - "recommended_actions": (array of strings) 3 short, basic home remedies.
-    - "seek_medical_help_if": (array of strings) 2 severe red flags to watch out for.
-    - "disclaimer": (string) Must be exactly: "This system provides AI-generated suggestions and is not a substitute for professional medical advice."
-    """
+    # Format the prompt exactly like we did in training
+    prompt = f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{symptoms}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
     
     try:
-        # Call Groq's Llama 3.1 model and force JSON output
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful medical assistant that outputs strictly in JSON."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            model="llama-3.1-8b-instant",
-            response_format={"type": "json_object"},
-        )
-        
-        # Read the AI's response
-        ai_response_text = chat_completion.choices[0].message.content
-        ai_data = json.loads(ai_response_text)
-        
-        return jsonify(ai_data)
-        
+        response = client.text_generation(prompt, max_new_tokens=256)
+        # Assuming the model returns the JSON structure you trained it for
+        return jsonify({"analysis": response})
     except Exception as e:
-        print("Error connecting to Groq:", e)
-        return jsonify({"error": "Failed to generate AI response"}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+        return jsonify({"error": str(e)}), 500
